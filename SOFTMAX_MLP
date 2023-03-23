@@ -1,0 +1,313 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOnumDmgtYUZz1SeeO4LoqI",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/zhukuixi/Pytorch_tutorial/blob/main/SOFTMAX_MLP\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "id": "ypaNkC9VdCjl"
+      },
+      "outputs": [],
+      "source": [
+        "import torch\n",
+        "import pandas as pd\n",
+        "import numpy as np"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!pip install git+https://github.com/d2l-ai/d2l-zh@release  # installing d2l\n",
+        "!pip install matplotlib_inline\n",
+        "import torch\n",
+        "from IPython import display\n",
+        "from d2l import torch as d2l\n",
+        "import numpy as np\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "m6HBNuOTdETJ",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "ace9a01e-1d60-4395-ece8-fa4882ef9145"
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Looking in indexes: https://pypi.org/simple, https://us-python.pkg.dev/colab-wheels/public/simple/\n",
+            "Collecting git+https://github.com/d2l-ai/d2l-zh@release\n",
+            "  Cloning https://github.com/d2l-ai/d2l-zh (to revision release) to /tmp/pip-req-build-bfn3qyrl\n",
+            "  Running command git clone --filter=blob:none --quiet https://github.com/d2l-ai/d2l-zh /tmp/pip-req-build-bfn3qyrl\n",
+            "  Running command git checkout -b release --track origin/release\n",
+            "  Switched to a new branch 'release'\n",
+            "  Branch 'release' set up to track remote branch 'release' from 'origin'.\n",
+            "  Resolved https://github.com/d2l-ai/d2l-zh to commit b29df2a66b5569984330b936409045eb2c13ef29\n",
+            "  Running command git submodule update --init --recursive -q\n",
+            "  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "Requirement already satisfied: jupyter==1.0.0 in /usr/local/lib/python3.9/dist-packages (from d2l==2.0.0) (1.0.0)\n",
+            "Requirement already satisfied: numpy==1.21.5 in /usr/local/lib/python3.9/dist-packages (from d2l==2.0.0) (1.21.5)\n",
+            "Requirement already satisfied: matplotlib==3.5.1 in /usr/local/lib/python3.9/dist-packages (from d2l==2.0.0) (3.5.1)\n",
+            "Requirement already satisfied: requests==2.25.1 in /usr/local/lib/python3.9/dist-packages (from d2l==2.0.0) (2.25.1)\n",
+            "Requirement already satisfied: pandas==1.2.4 in /usr/local/lib/python3.9/dist-packages (from d2l==2.0.0) (1.2.4)\n",
+            "Requirement already satisfied: notebook in /usr/local/lib/python3.9/dist-packages (from jupyter==1.0.0->d2l==2.0.0) (6.3.0)\n",
+            "Requirement already satisfied: qtconsole in /usr/local/lib/python3.9/dist-packages (from jupyter==1.0.0->d2l==2.0.0) (5.4.1)\n",
+            "Requirement already satisfied: ipywidgets in /usr/local/lib/python3.9/dist-packages (from jupyter==1.0.0->d2l==2.0.0) (7.7.1)\n",
+            "Requirement already satisfied: ipykernel in /usr/local/lib/python3.9/dist-packages (from jupyter==1.0.0->d2l==2.0.0) (5.3.4)\n",
+            "Requirement already satisfied: nbconvert in /usr/local/lib/python3.9/dist-packages (from jupyter==1.0.0->d2l==2.0.0) (6.5.4)\n",
+            "Requirement already satisfied: jupyter-console in /usr/local/lib/python3.9/dist-packages (from jupyter==1.0.0->d2l==2.0.0) (6.1.0)\n",
+            "Requirement already satisfied: pillow>=6.2.0 in /usr/local/lib/python3.9/dist-packages (from matplotlib==3.5.1->d2l==2.0.0) (8.4.0)\n",
+            "Requirement already satisfied: fonttools>=4.22.0 in /usr/local/lib/python3.9/dist-packages (from matplotlib==3.5.1->d2l==2.0.0) (4.39.2)\n",
+            "Requirement already satisfied: packaging>=20.0 in /usr/local/lib/python3.9/dist-packages (from matplotlib==3.5.1->d2l==2.0.0) (23.0)\n",
+            "Requirement already satisfied: kiwisolver>=1.0.1 in /usr/local/lib/python3.9/dist-packages (from matplotlib==3.5.1->d2l==2.0.0) (1.4.4)\n",
+            "Requirement already satisfied: python-dateutil>=2.7 in /usr/local/lib/python3.9/dist-packages (from matplotlib==3.5.1->d2l==2.0.0) (2.8.2)\n",
+            "Requirement already satisfied: cycler>=0.10 in /usr/local/lib/python3.9/dist-packages (from matplotlib==3.5.1->d2l==2.0.0) (0.11.0)\n",
+            "Requirement already satisfied: pyparsing>=2.2.1 in /usr/local/lib/python3.9/dist-packages (from matplotlib==3.5.1->d2l==2.0.0) (3.0.9)\n",
+            "Requirement already satisfied: pytz>=2017.3 in /usr/local/lib/python3.9/dist-packages (from pandas==1.2.4->d2l==2.0.0) (2022.7.1)\n",
+            "Requirement already satisfied: idna<3,>=2.5 in /usr/local/lib/python3.9/dist-packages (from requests==2.25.1->d2l==2.0.0) (2.10)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.9/dist-packages (from requests==2.25.1->d2l==2.0.0) (2022.12.7)\n",
+            "Requirement already satisfied: urllib3<1.27,>=1.21.1 in /usr/local/lib/python3.9/dist-packages (from requests==2.25.1->d2l==2.0.0) (1.26.15)\n",
+            "Requirement already satisfied: chardet<5,>=3.0.2 in /usr/lib/python3/dist-packages (from requests==2.25.1->d2l==2.0.0) (3.0.4)\n",
+            "Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.9/dist-packages (from python-dateutil>=2.7->matplotlib==3.5.1->d2l==2.0.0) (1.16.0)\n",
+            "Requirement already satisfied: jupyter-client in /usr/local/lib/python3.9/dist-packages (from ipykernel->jupyter==1.0.0->d2l==2.0.0) (6.1.12)\n",
+            "Requirement already satisfied: tornado>=4.2 in /usr/local/lib/python3.9/dist-packages (from ipykernel->jupyter==1.0.0->d2l==2.0.0) (6.2)\n",
+            "Requirement already satisfied: traitlets>=4.1.0 in /usr/local/lib/python3.9/dist-packages (from ipykernel->jupyter==1.0.0->d2l==2.0.0) (5.7.1)\n",
+            "Requirement already satisfied: ipython>=5.0.0 in /usr/local/lib/python3.9/dist-packages (from ipykernel->jupyter==1.0.0->d2l==2.0.0) (7.9.0)\n",
+            "Requirement already satisfied: ipython-genutils~=0.2.0 in /usr/local/lib/python3.9/dist-packages (from ipywidgets->jupyter==1.0.0->d2l==2.0.0) (0.2.0)\n",
+            "Requirement already satisfied: widgetsnbextension~=3.6.0 in /usr/local/lib/python3.9/dist-packages (from ipywidgets->jupyter==1.0.0->d2l==2.0.0) (3.6.3)\n",
+            "Requirement already satisfied: jupyterlab-widgets>=1.0.0 in /usr/local/lib/python3.9/dist-packages (from ipywidgets->jupyter==1.0.0->d2l==2.0.0) (3.0.6)\n",
+            "Requirement already satisfied: prompt-toolkit!=3.0.0,!=3.0.1,<3.1.0,>=2.0.0 in /usr/local/lib/python3.9/dist-packages (from jupyter-console->jupyter==1.0.0->d2l==2.0.0) (2.0.10)\n",
+            "Requirement already satisfied: pygments in /usr/local/lib/python3.9/dist-packages (from jupyter-console->jupyter==1.0.0->d2l==2.0.0) (2.6.1)\n",
+            "Requirement already satisfied: beautifulsoup4 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (4.11.2)\n",
+            "Requirement already satisfied: defusedxml in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (0.7.1)\n",
+            "Requirement already satisfied: jinja2>=3.0 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (3.1.2)\n",
+            "Requirement already satisfied: mistune<2,>=0.8.1 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (0.8.4)\n",
+            "Requirement already satisfied: pandocfilters>=1.4.1 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (1.5.0)\n",
+            "Requirement already satisfied: entrypoints>=0.2.2 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (0.4)\n",
+            "Requirement already satisfied: nbclient>=0.5.0 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (0.7.2)\n",
+            "Requirement already satisfied: tinycss2 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (1.2.1)\n",
+            "Requirement already satisfied: bleach in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (6.0.0)\n",
+            "Requirement already satisfied: nbformat>=5.1 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (5.8.0)\n",
+            "Requirement already satisfied: jupyter-core>=4.7 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (5.3.0)\n",
+            "Requirement already satisfied: MarkupSafe>=2.0 in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (2.1.2)\n",
+            "Requirement already satisfied: jupyterlab-pygments in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (0.2.2)\n",
+            "Requirement already satisfied: lxml in /usr/local/lib/python3.9/dist-packages (from nbconvert->jupyter==1.0.0->d2l==2.0.0) (4.9.2)\n",
+            "Requirement already satisfied: terminado>=0.8.3 in /usr/local/lib/python3.9/dist-packages (from notebook->jupyter==1.0.0->d2l==2.0.0) (0.17.1)\n",
+            "Requirement already satisfied: argon2-cffi in /usr/local/lib/python3.9/dist-packages (from notebook->jupyter==1.0.0->d2l==2.0.0) (21.3.0)\n",
+            "Requirement already satisfied: prometheus-client in /usr/local/lib/python3.9/dist-packages (from notebook->jupyter==1.0.0->d2l==2.0.0) (0.16.0)\n",
+            "Requirement already satisfied: Send2Trash>=1.5.0 in /usr/local/lib/python3.9/dist-packages (from notebook->jupyter==1.0.0->d2l==2.0.0) (1.8.0)\n",
+            "Requirement already satisfied: pyzmq>=17 in /usr/local/lib/python3.9/dist-packages (from notebook->jupyter==1.0.0->d2l==2.0.0) (23.2.1)\n",
+            "Requirement already satisfied: qtpy>=2.0.1 in /usr/local/lib/python3.9/dist-packages (from qtconsole->jupyter==1.0.0->d2l==2.0.0) (2.3.0)\n",
+            "Requirement already satisfied: setuptools>=18.5 in /usr/local/lib/python3.9/dist-packages (from ipython>=5.0.0->ipykernel->jupyter==1.0.0->d2l==2.0.0) (67.6.0)\n",
+            "Requirement already satisfied: decorator in /usr/local/lib/python3.9/dist-packages (from ipython>=5.0.0->ipykernel->jupyter==1.0.0->d2l==2.0.0) (4.4.2)\n",
+            "Requirement already satisfied: pexpect in /usr/local/lib/python3.9/dist-packages (from ipython>=5.0.0->ipykernel->jupyter==1.0.0->d2l==2.0.0) (4.8.0)\n",
+            "Requirement already satisfied: pickleshare in /usr/local/lib/python3.9/dist-packages (from ipython>=5.0.0->ipykernel->jupyter==1.0.0->d2l==2.0.0) (0.7.5)\n",
+            "Requirement already satisfied: jedi>=0.10 in /usr/local/lib/python3.9/dist-packages (from ipython>=5.0.0->ipykernel->jupyter==1.0.0->d2l==2.0.0) (0.18.2)\n",
+            "Requirement already satisfied: backcall in /usr/local/lib/python3.9/dist-packages (from ipython>=5.0.0->ipykernel->jupyter==1.0.0->d2l==2.0.0) (0.2.0)\n",
+            "Requirement already satisfied: platformdirs>=2.5 in /usr/local/lib/python3.9/dist-packages (from jupyter-core>=4.7->nbconvert->jupyter==1.0.0->d2l==2.0.0) (3.1.1)\n",
+            "Requirement already satisfied: fastjsonschema in /usr/local/lib/python3.9/dist-packages (from nbformat>=5.1->nbconvert->jupyter==1.0.0->d2l==2.0.0) (2.16.3)\n",
+            "Requirement already satisfied: jsonschema>=2.6 in /usr/local/lib/python3.9/dist-packages (from nbformat>=5.1->nbconvert->jupyter==1.0.0->d2l==2.0.0) (4.3.3)\n",
+            "Requirement already satisfied: wcwidth in /usr/local/lib/python3.9/dist-packages (from prompt-toolkit!=3.0.0,!=3.0.1,<3.1.0,>=2.0.0->jupyter-console->jupyter==1.0.0->d2l==2.0.0) (0.2.6)\n",
+            "Requirement already satisfied: ptyprocess in /usr/local/lib/python3.9/dist-packages (from terminado>=0.8.3->notebook->jupyter==1.0.0->d2l==2.0.0) (0.7.0)\n",
+            "Requirement already satisfied: argon2-cffi-bindings in /usr/local/lib/python3.9/dist-packages (from argon2-cffi->notebook->jupyter==1.0.0->d2l==2.0.0) (21.2.0)\n",
+            "Requirement already satisfied: soupsieve>1.2 in /usr/local/lib/python3.9/dist-packages (from beautifulsoup4->nbconvert->jupyter==1.0.0->d2l==2.0.0) (2.4)\n",
+            "Requirement already satisfied: webencodings in /usr/local/lib/python3.9/dist-packages (from bleach->nbconvert->jupyter==1.0.0->d2l==2.0.0) (0.5.1)\n",
+            "Requirement already satisfied: parso<0.9.0,>=0.8.0 in /usr/local/lib/python3.9/dist-packages (from jedi>=0.10->ipython>=5.0.0->ipykernel->jupyter==1.0.0->d2l==2.0.0) (0.8.3)\n",
+            "Requirement already satisfied: pyrsistent!=0.17.0,!=0.17.1,!=0.17.2,>=0.14.0 in /usr/local/lib/python3.9/dist-packages (from jsonschema>=2.6->nbformat>=5.1->nbconvert->jupyter==1.0.0->d2l==2.0.0) (0.19.3)\n",
+            "Requirement already satisfied: attrs>=17.4.0 in /usr/local/lib/python3.9/dist-packages (from jsonschema>=2.6->nbformat>=5.1->nbconvert->jupyter==1.0.0->d2l==2.0.0) (22.2.0)\n",
+            "Requirement already satisfied: cffi>=1.0.1 in /usr/local/lib/python3.9/dist-packages (from argon2-cffi-bindings->argon2-cffi->notebook->jupyter==1.0.0->d2l==2.0.0) (1.15.1)\n",
+            "Requirement already satisfied: pycparser in /usr/local/lib/python3.9/dist-packages (from cffi>=1.0.1->argon2-cffi-bindings->argon2-cffi->notebook->jupyter==1.0.0->d2l==2.0.0) (2.21)\n",
+            "Looking in indexes: https://pypi.org/simple, https://us-python.pkg.dev/colab-wheels/public/simple/\n",
+            "Requirement already satisfied: matplotlib_inline in /usr/local/lib/python3.9/dist-packages (0.1.6)\n",
+            "Requirement already satisfied: traitlets in /usr/local/lib/python3.9/dist-packages (from matplotlib_inline) (5.7.1)\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.9/dist-packages/torch/cuda/__init__.py:497: UserWarning: Can't initialize NVML\n",
+            "  warnings.warn(\"Can't initialize NVML\")\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from torch import nn"
+      ],
+      "metadata": {
+        "id": "bamEcdRc2LKH"
+      },
+      "execution_count": 3,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# metric - accuracy\n",
+        "def accuracy(y_hat,y):\n",
+        "  #“==”opearation is sensitive to dype \n",
+        "  # we need to do the dtype transformation before == operation\n",
+        "  if len(y_hat)>1 and y_hat.shape[1]>1:\n",
+        "      y_hat = y_hat.argmax(axis=1)\n",
+        "  return (y_hat.type(y.dtype)==y).sum()\n"
+      ],
+      "metadata": {
+        "id": "p10HJbCcg5Cg"
+      },
+      "execution_count": 4,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "class logisticNet(torch.nn.Module):\n",
+        "  def __init__(self):\n",
+        "    super().__init__()\n",
+        "    self.flatten = torch.nn.Flatten()\n",
+        "    self.linear = torch.nn.Linear(784,10)\n",
+        "  def forward(self,x):\n",
+        "    return torch.sigmoid(self.linear(self.flatten(x)))\n",
+        "\n",
+        "class MLP(torch.nn.Module):\n",
+        "  def __init__(self):\n",
+        "    super().__init__()\n",
+        "    self.net = nn.Sequential(nn.Flatten(),\n",
+        "                    nn.Linear(784, 256),\n",
+        "                    nn.ReLU(),\n",
+        "                    nn.Linear(256, 10))\n",
+        "  def forward(self,x):\n",
+        "    return self.net(x)\n",
+        "\n",
+        "train_iter,test_iter = d2l.load_data_fashion_mnist(50)\n",
+        "#net = logisticNet()\n",
+        "net = MLP()\n",
+        "lossFun = torch.nn.CrossEntropyLoss(reduction='none')\n",
+        "optimizier = torch.optim.SGD(net.parameters(),lr=0.1)\n",
+        "\n",
+        "for epoch in np.arange(100):\n",
+        "  for X,y in train_iter:\n",
+        "    optimizier.zero_grad()\n",
+        "    y_hat = net(X)\n",
+        "    loss = lossFun(y_hat, y)  \n",
+        "    loss.mean().backward()\n",
+        "    optimizier.step()\n",
+        " \n",
+        "  print(\"epoch:{} loss:{:.3}\".format(epoch,loss.mean().item()))\n",
+        "\n",
+        "  with torch.no_grad():\n",
+        "    acc = 0      \n",
+        "    count = 0 \n",
+        "    for X_test,y_test in test_iter:\n",
+        "      acc += accuracy(net(X_test),y_test)\n",
+        "      count += y_test.numel()\n",
+        "    print(\"test accuracy:{:.3}\".format(acc/count))\n",
+        "    \n",
+        "\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 1000
+        },
+        "id": "4NF_i3SLdVgJ",
+        "outputId": "ab12cfa3-8534-4243-f503-276ef2002e31"
+      },
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.9/dist-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.\n",
+            "  warnings.warn(_create_warning_msg(\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "epoch:0 loss:0.35\n",
+            "test accuracy:0.831\n",
+            "epoch:1 loss:0.251\n",
+            "test accuracy:0.842\n",
+            "epoch:2 loss:0.435\n",
+            "test accuracy:0.848\n",
+            "epoch:3 loss:0.247\n",
+            "test accuracy:0.865\n",
+            "epoch:4 loss:0.252\n",
+            "test accuracy:0.869\n",
+            "epoch:5 loss:0.246\n",
+            "test accuracy:0.871\n",
+            "epoch:6 loss:0.336\n",
+            "test accuracy:0.874\n",
+            "epoch:7 loss:0.368\n",
+            "test accuracy:0.87\n",
+            "epoch:8 loss:0.226\n",
+            "test accuracy:0.871\n",
+            "epoch:9 loss:0.189\n",
+            "test accuracy:0.872\n",
+            "epoch:10 loss:0.173\n",
+            "test accuracy:0.882\n",
+            "epoch:11 loss:0.255\n",
+            "test accuracy:0.884\n",
+            "epoch:12 loss:0.403\n",
+            "test accuracy:0.871\n",
+            "epoch:13 loss:0.501\n",
+            "test accuracy:0.885\n",
+            "epoch:14 loss:0.139\n",
+            "test accuracy:0.884\n",
+            "epoch:15 loss:0.187\n",
+            "test accuracy:0.886\n",
+            "epoch:16 loss:0.204\n",
+            "test accuracy:0.879\n",
+            "epoch:17 loss:0.184\n",
+            "test accuracy:0.888\n"
+          ]
+        },
+        {
+          "output_type": "error",
+          "ename": "KeyboardInterrupt",
+          "evalue": "ignored",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m                         Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-5-54ecd7b2f63c>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     25\u001b[0m \u001b[0;32mfor\u001b[0m \u001b[0mepoch\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mnp\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0marange\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;36m100\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     26\u001b[0m   \u001b[0;32mfor\u001b[0m \u001b[0mX\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0my\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mtrain_iter\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 27\u001b[0;31m     \u001b[0moptimizier\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mzero_grad\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     28\u001b[0m     \u001b[0my_hat\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mnet\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mX\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     29\u001b[0m     \u001b[0mloss\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mlossFun\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0my_hat\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.9/dist-packages/torch/optim/optimizer.py\u001b[0m in \u001b[0;36mzero_grad\u001b[0;34m(self, set_to_none)\u001b[0m\n\u001b[1;32m    272\u001b[0m                             \u001b[0mp\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgrad\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    273\u001b[0m                         \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 274\u001b[0;31m                             \u001b[0;32mif\u001b[0m \u001b[0mp\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgrad\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgrad_fn\u001b[0m \u001b[0;32mis\u001b[0m \u001b[0;32mnot\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    275\u001b[0m                                 \u001b[0mp\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgrad\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mdetach_\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    276\u001b[0m                             \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m: "
+          ]
+        }
+      ]
+    }
+  ]
+}
